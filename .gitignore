@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# POSIX thread 라이브러리
+pthread/
+
+# KeyData
+KeyData.h
+
 # User-specific files
 *.rsuser
 *.suo
