@@ -4,6 +4,7 @@
 #include "cryptor.h"
 #include "StrGetter.h"
 #include "threadAmount.h"
+#include "KeyGetter.h"
 
 #include <stdio.h>
 
@@ -23,6 +24,12 @@ void* checkPasswordByThread(void* threadIdx) {
 }
 
 PWCHAR getPassword(PWCHAR startStr) {
+	KeyData* kd = getKeyData();
+	if (kd == NULL)
+		return NULL;
+	else
+		setKeyData(kd);
+
 	setStrInit(startStr);
 	
 	pthread_t threads[THREAD_AMOUNT];

@@ -5,11 +5,24 @@
 #include "base64.h"
 #include "StrGetter.h"
 
+#include "KeyGetter.h"
 #include "KeyData.h"
 
 // 코드 참고 출처 : https://codetronik.tistory.com/93
 
 #define MAX_FILE_SIZE 999999
+
+int hasKeyData = 0;
+KeyData* keydata;
+void setKeyData(KeyData* kd) {
+	if (kd != NULL) {
+		keydata = kd;
+		hasKeyData = 1;
+	}
+	else {
+		printf("Wrong KeyData!\n");
+	}
+}
 
 // 문서 복호화
 void Decrypt2(
@@ -110,7 +123,7 @@ void GenPasswordHash(
 	SHA512_Final((BYTE*)&uiBuffer[1], &ctx);
 
 	// spin_count = 100000
-	for (int i = 0; i < SPIN_COUNT; i++)
+	for (int i = 0; i < keydata->spinCount; i++)
 	{
 		*uiBuffer = i; // spin count
 		SHA512_Init(&ctx);
@@ -149,6 +162,11 @@ BYTE byPwHash[64] = { 0, };
 BYTE bySalt[16] = { 1, };
 
 PWCHAR checkCorrectPassword(int threadIdx) {
+	if (!hasKeyData) {
+		printf("KeyData has not been assigned!\n");
+		return NULL;
+	}
+
 	// 블록 키 (고정값)
 	BYTE byHashInputBlockKey[] = { 0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79 };
 	BYTE byHashValueBlockKey[] = { 0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 0x4e };
@@ -158,9 +176,9 @@ PWCHAR checkCorrectPassword(int threadIdx) {
 	BYTE byEncryptedVerifierHashInput[16] = { 0, };
 	BYTE byEncryptedVerifierHashValue[64] = { 0, };
 
-	base64_decode(Salt, bySalt, 16);
-	base64_decode(EncryptedVerifierHashInput, byEncryptedVerifierHashInput, 16);
-	base64_decode(EncryptedVerifierHashValue, byEncryptedVerifierHashValue, 64);
+	base64_decode(keydata->Salt, bySalt, 16);
+	base64_decode(keydata->EncryptedVerifierHashInput, byEncryptedVerifierHashInput, 16);
+	base64_decode(keydata->EncryptedVerifierHashValue, byEncryptedVerifierHashValue, 64);
 
 	// 암호화 데이터를 복호화하는 대칭키
 	BYTE byHashInputKey[SHA512_DIGEST_LENGTH] = { 0, };
