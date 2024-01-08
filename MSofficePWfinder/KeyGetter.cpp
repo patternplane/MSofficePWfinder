@@ -69,20 +69,22 @@ WCHAR** getDataInFile(char* filename) {
 
 	int currentKeyword = 0;
 	int keywordIdx = 0;
+	const int KEYWORDS_LEN = 5;
 	const char* keywords[] = {
 		"p:encryptedKey",
+		"spinCount",
 		"saltValue",
 		"encryptedVerifierHashInput",
 		"encryptedVerifierHashValue"
 	};
 
-	WCHAR** findedValues = (WCHAR**)malloc(3 * sizeof(WCHAR*));
-	for (int i = 0; i < 3; i++)
+	WCHAR** findedValues = (WCHAR**)malloc((KEYWORDS_LEN-1) * sizeof(WCHAR*));
+	for (int i = 0; i < (KEYWORDS_LEN - 1); i++)
 		findedValues[i] = (WCHAR*)malloc(500 * sizeof(WCHAR));
 
 	while (true) {
 		if (isEof()
-			|| currentKeyword == 4)
+			|| currentKeyword == KEYWORDS_LEN)
 			break;
 		else if (keywords[currentKeyword][keywordIdx] == '\0') {
 			if (currentKeyword != 0) {
@@ -109,7 +111,7 @@ WCHAR** getDataInFile(char* filename) {
 			keywordIdx = 0;
 		}
 	}
-	if (currentKeyword == 4) {
+	if (currentKeyword == KEYWORDS_LEN) {
 		return findedValues;
 	}
 	else {
@@ -230,9 +232,13 @@ KeyData* getKeyData() {
 		return NULL;
 
 	KeyData * kd = (KeyData*)malloc(sizeof(KeyData));
-	kd->Salt = keys[0];
-	kd->EncryptedVerifierHashInput = keys[1];
-	kd->EncryptedVerifierHashValue = keys[2];
+	int r = 0;
+	for (int i = 0; keys[0][i] != '\0'; i++)
+		r = r * 10 + (keys[0][i] - (WCHAR)'0');
+	kd->spinCount = r;
+	kd->Salt = keys[1];
+	kd->EncryptedVerifierHashInput = keys[2];
+	kd->EncryptedVerifierHashValue = keys[3];
 
 	return kd;
 }

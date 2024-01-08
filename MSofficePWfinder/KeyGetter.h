@@ -2,6 +2,7 @@
 #include <Windows.h>
 
 struct KeyData {
+	int spinCount;
 	PWCHAR Salt;
 	PWCHAR EncryptedVerifierHashInput;
 	PWCHAR EncryptedVerifierHashValue;
