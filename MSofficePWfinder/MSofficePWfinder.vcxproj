@@ -156,6 +156,7 @@
     <ClCompile Include="KeyGetter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="StrGetter.cpp" />
+    <ClCompile Include="StrGetter2.cpp" />
     <ClCompile Include="threadCryptor.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +165,7 @@
     <ClInclude Include="KeyData.h" />
     <ClInclude Include="KeyGetter.h" />
     <ClInclude Include="StrGetter.h" />
+    <ClInclude Include="StrGetter2.h" />
     <ClInclude Include="threadAmount.h" />
     <ClInclude Include="threadCryptor.h" />
   </ItemGroup>
