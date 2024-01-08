@@ -3,13 +3,13 @@
 
 struct KeyData {
 	int spinCount;
-	PWCHAR Salt;
-	PWCHAR EncryptedVerifierHashInput;
-	PWCHAR EncryptedVerifierHashValue;
+	char* Salt;
+	char* EncryptedVerifierHashInput;
+	char* EncryptedVerifierHashValue;
 };
 
 struct fileData {
-	WCHAR** keyData;
+	char** keyData;
 	char filename[500];
 	fileData* nextFile;
 };

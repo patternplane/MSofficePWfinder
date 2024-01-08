@@ -63,7 +63,7 @@ int isEof() {
 읽은 정보에서 필요정보 추출 함수
 ===============================*/
 
-WCHAR** getDataInFile(char* filename) {
+char** getDataInFile(char* filename) {
 	if (0 != setFile(filename))
 		return NULL;
 
@@ -78,9 +78,9 @@ WCHAR** getDataInFile(char* filename) {
 		"encryptedVerifierHashValue"
 	};
 
-	WCHAR** findedValues = (WCHAR**)malloc((KEYWORDS_LEN-1) * sizeof(WCHAR*));
+	char** findedValues = (char**)malloc((KEYWORDS_LEN-1) * sizeof(char*));
 	for (int i = 0; i < (KEYWORDS_LEN - 1); i++)
-		findedValues[i] = (WCHAR*)malloc(500 * sizeof(WCHAR));
+		findedValues[i] = (char*)malloc(500 * sizeof(char));
 
 	while (true) {
 		if (isEof()
@@ -94,9 +94,9 @@ WCHAR** getDataInFile(char* filename) {
 				while (true) {
 					a = getCharFromFile();
 					if (a != '"')
-						findedValues[currentKeyword - 1][i++] = (WCHAR)a;
+						findedValues[currentKeyword - 1][i++] = a;
 					else {
-						findedValues[currentKeyword - 1][i] = (WCHAR)'\0';
+						findedValues[currentKeyword - 1][i] = '\0';
 						break;
 					}
 				}
@@ -125,7 +125,7 @@ WCHAR** getDataInFile(char* filename) {
 파일별 키 추출 및 사용할 파일 확정
 ================================*/
 
-void recordFileData(fileData** root,char* filename, WCHAR** keyData) {
+void recordFileData(fileData** root,char* filename, char** keyData) {
 	fileData* newfn = (fileData*)malloc(sizeof(fileData));
 	strcpy_s(newfn->filename, filename);
 	newfn->nextFile = NULL;
@@ -145,7 +145,7 @@ void recordFileData(fileData** root,char* filename, WCHAR** keyData) {
 	}
 }
 
-WCHAR** getDataFromFile() {
+char** getDataFromFile() {
 	struct _finddata_t finddata;
 	long handle;
 	int result = 1;
@@ -162,7 +162,7 @@ WCHAR** getDataFromFile() {
 	{
 		if (strcmp(USER_INPUT_FILE, finddata.name) != 0
 			&& (finddata.attrib & _A_SUBDIR) == 0) {
-			WCHAR** passwordData = getDataInFile(finddata.name);
+			char** passwordData = getDataInFile(finddata.name);
 			if (passwordData != NULL)
 				recordFileData(&fileNames, finddata.name, passwordData);
 		}
@@ -227,14 +227,14 @@ WCHAR** getDataFromFile() {
 =================*/
 
 KeyData* getKeyData() {
-	WCHAR** keys = getDataFromFile();
+	char** keys = getDataFromFile();
 	if (keys == NULL)
 		return NULL;
 
 	KeyData * kd = (KeyData*)malloc(sizeof(KeyData));
 	int r = 0;
 	for (int i = 0; keys[0][i] != '\0'; i++)
-		r = r * 10 + (keys[0][i] - (WCHAR)'0');
+		r = r * 10 + (keys[0][i] - '0');
 	kd->spinCount = r;
 	kd->Salt = keys[1];
 	kd->EncryptedVerifierHashInput = keys[2];
