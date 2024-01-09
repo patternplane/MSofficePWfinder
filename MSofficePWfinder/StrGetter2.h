@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include "DicGetter.h"
 
 // delete, add, change
 // single or double
@@ -25,6 +26,6 @@ struct quotaData {
 	int amount;
 };
 
-void strInit(const WCHAR* initStr);
+void strInit(DictionData* initStrs);
 
 void getQuotaData(quotaData* destination);

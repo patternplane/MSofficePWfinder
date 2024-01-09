@@ -1,6 +1,7 @@
 #include "StrGetter2.h"
 
 currentStep step;
+int needInit;
 int firstIdx;
 int secondIdx;
 WCHAR firstChar;
@@ -8,31 +9,54 @@ WCHAR secondChar;
 const WCHAR START_CHAR = ' ';
 const WCHAR END_CHAR = '~';
 
-PWCHAR origin;
-PWCHAR origin_CR;
+DictionData* passwords;
+int currentWord;
+
+WCHAR origin[CHAR_LEN];
+WCHAR origin_CR[CHAR_LEN];
 int originLen;
 
-void strInit(const WCHAR* initStr) {
-	step = original;
+int setWord() {
+	int result = -(currentWord == passwords->amount - 1);
+	if (currentWord == passwords->amount - 1)
+		currentWord = 0;
+	else
+		currentWord++;
 
-	for (int i = 0; ; i++)
-		if (initStr[i] == '\0') {
+	for (int i = 0; ; i++) {
+		origin[i] = passwords->diction[currentWord][i];
+		origin_CR[i] = ('a' <= passwords->diction[currentWord][i] && passwords->diction[currentWord][i] <= 'z'
+			? passwords->diction[currentWord][i] - 'a' + 'A'
+			: ('A' <= passwords->diction[currentWord][i] && passwords->diction[currentWord][i] <= 'Z'
+				? passwords->diction[currentWord][i] - 'A' + 'a'
+				: passwords->diction[currentWord][i]));
+		if (passwords->diction[currentWord][i] == '\0') {
 			originLen = i;
 			break;
 		}
-	origin = (WCHAR*)malloc((originLen + 1) * sizeof(WCHAR));
-	origin_CR = (WCHAR*)malloc((originLen + 1) * sizeof(WCHAR));
-	for (int i = 0; i < originLen + 1; i++) {
-		origin[i] = initStr[i];
-		origin_CR[i] = ('a' <= initStr[i] && initStr[i] <= 'z'
-			? initStr[i] - 'a' + 'A'
-			: ('A' <= initStr[i] && initStr[i] <= 'Z'
-				? initStr[i] - 'A' + 'a'
-				: initStr[i]));
 	}
+
+	return result;
+}
+
+void strInit(DictionData* initStrs) {
+	step = original;
+	needInit = true;
+	passwords = initStrs;
+
+	if (initStrs->amount == 0)
+		return;
+
+	currentWord = -1;
+
+	setWord();
 }
 
 void getQuotaData(quotaData* destination) {
+	if (passwords->amount == 0) {
+		destination->amount = 0;
+		return;
+	}
 
 	int cnt = 0;
 
@@ -49,12 +73,19 @@ void getQuotaData(quotaData* destination) {
 			}
 
 			cnt += 2;
-			step = d1;
-			firstIdx = 0;
+			if (-1 == setWord()) {
+				step = d1;
+				needInit = true;
+			}
 		}
 
 		// 1개 삭제 - 테스트 완료
 		else if (step == d1) {
+			if (needInit) {
+				firstIdx = 0;
+				needInit = false;
+			}
+
 			for (int j = 0, oi = 0; ; oi++) {
 				if (oi != firstIdx) {
 					destination->quota[cnt][j] = origin[oi];
@@ -66,14 +97,20 @@ void getQuotaData(quotaData* destination) {
 			cnt += 2;
 			firstIdx++;
 			if (firstIdx == originLen) {
-				step = a1;
-				firstIdx = 0;
-				firstChar = START_CHAR;
+				if (-1 == setWord())
+					step = a1;
+				needInit = true;
 			}
 		}
 
 		// 1개 추가 - 테스트 완료
 		else if (step == a1) {
+			if (needInit) {
+				firstIdx = 0;
+				firstChar = START_CHAR;
+				needInit = false;
+			}
+
 			for (int j = 0, oi = 0; ; oi++) {
 				if (oi == firstIdx) {
 					destination->quota[cnt][j] = firstChar;
@@ -90,9 +127,9 @@ void getQuotaData(quotaData* destination) {
 			if (firstChar == END_CHAR) {
 				firstChar = START_CHAR;
 				if (firstIdx == originLen) {
-					step = c1;
-					firstIdx = 0;
-					firstChar = START_CHAR;
+					if (-1 == setWord())
+						step = c1;
+					needInit = true;
 				}
 				else
 					firstIdx++;
@@ -103,6 +140,12 @@ void getQuotaData(quotaData* destination) {
 
 		// 1개 변경 - 테스트 완료
 		else if (step == c1) {
+			if (needInit) {
+				firstIdx = 0;
+				firstChar = START_CHAR;
+				needInit = false;
+			}
+
 			for (int i = 0; i < originLen + 1; i++) {
 				destination->quota[cnt][i] = origin[i];
 				destination->quota[cnt + 1][i] = origin_CR[i];
@@ -115,9 +158,9 @@ void getQuotaData(quotaData* destination) {
 				firstChar = START_CHAR;
 				firstIdx++;
 				if (firstIdx == originLen) {
-					step = d2;
-					firstIdx = 0;
-					secondIdx = firstIdx + 1;
+					if (-1 == setWord())
+						step = d2;
+					needInit = true;
 				}
 			}
 			else
@@ -126,6 +169,12 @@ void getQuotaData(quotaData* destination) {
 
 		// 2개 삭제 - 테스트 완료
 		else if (step == d2) {
+			if (needInit) {
+				firstIdx = 0;
+				secondIdx = firstIdx + 1;
+				needInit = false;
+			}
+
 			for (int k = 0, oi = 0; ; oi++) {
 				if (origin[oi] == '\0'
 					|| (oi != firstIdx
@@ -143,17 +192,23 @@ void getQuotaData(quotaData* destination) {
 				firstIdx++;
 				secondIdx = firstIdx + 1;
 				if (firstIdx == originLen - 1) {
-					step = a2;
-					firstIdx = 0;
-					secondIdx = firstIdx;
-					firstChar = START_CHAR;
-					secondChar = START_CHAR;
+					if (-1 == setWord())
+						step = a2;
+					needInit = true;
 				}
 			}
 		}
 
 		// 2개 추가 - 테스트 완료
 		else if (step == a2) {
+			if (needInit) {
+				firstIdx = 0;
+				secondIdx = firstIdx;
+				firstChar = START_CHAR;
+				secondChar = START_CHAR;
+				needInit = false;
+			}
+
 			for (int k = 0, oi = 0; ; oi++) {
 				if (oi == firstIdx)
 					k++;
@@ -179,11 +234,9 @@ void getQuotaData(quotaData* destination) {
 						firstIdx++;
 						secondIdx = firstIdx;
 						if (firstIdx == originLen + 1) {
-							step = c2;
-							firstIdx = 0;
-							secondIdx = firstIdx + 1;
-							firstChar = START_CHAR;
-							secondChar = START_CHAR;
+							if (-1 == setWord())
+								step = c2;
+							needInit = true;
 						}
 					}
 				}
@@ -198,6 +251,14 @@ void getQuotaData(quotaData* destination) {
 
 		// 2개 변경 - 테스트 완료
 		else if (step == c2) {
+			if (needInit) {
+				firstIdx = 0;
+				secondIdx = firstIdx + 1;
+				firstChar = START_CHAR;
+				secondChar = START_CHAR;
+				needInit = false;
+			}
+			
 			for (int k = 0; k < originLen + 1; k++) {
 				destination->quota[cnt][k] = origin[k];
 				destination->quota[cnt + 1][k] = origin_CR[k];
@@ -217,10 +278,9 @@ void getQuotaData(quotaData* destination) {
 						firstIdx++;
 						secondIdx = firstIdx + 1;
 						if (firstIdx == originLen - 1) {
-							step = d1a1;
-							firstIdx = 0;
-							secondIdx = 0;
-							firstChar = START_CHAR;
+							if (-1 == setWord())
+								step = d1a1;
+							needInit = true;
 						}
 					}
 				}
@@ -235,6 +295,13 @@ void getQuotaData(quotaData* destination) {
 
 		// 1삭제 1추가 - 테스트 완료
 		else if (step == d1a1) {
+			if (needInit) {
+				firstIdx = 0;
+				secondIdx = 0;
+				firstChar = START_CHAR;
+				needInit = false;
+			}
+
 			for (int k = 0, oi = 0; ; oi++) {
 				if (k == secondIdx)
 					k++;
@@ -256,10 +323,9 @@ void getQuotaData(quotaData* destination) {
 					firstIdx++;
 					secondIdx = 0;
 					if (firstIdx == originLen) {
-						step = d1c1;
-						firstIdx = 0;
-						secondIdx = 0;
-						firstChar = START_CHAR;
+						if (-1 == setWord())
+							step = d1c1;
+						needInit = true;
 					}
 				}
 			}
@@ -269,6 +335,13 @@ void getQuotaData(quotaData* destination) {
 
 		// 1삭제 1변경 - 테스트 완료
 		else if (step == d1c1) {
+			if (needInit) {
+				firstIdx = 0;
+				secondIdx = 0;
+				firstChar = START_CHAR;
+				needInit = false;
+			}
+			
 			for (int k = 0, oi = 0; ; oi++) {
 				if (oi != firstIdx) {
 					destination->quota[cnt][k] = origin[oi];
@@ -289,11 +362,9 @@ void getQuotaData(quotaData* destination) {
 						firstIdx++;
 						secondIdx = 0;
 						if (firstIdx == originLen) {
-							step = a1c1;
-							firstIdx = 0;
-							secondIdx = 1;
-							firstChar = START_CHAR;
-							secondChar = START_CHAR;
+							if (-1 == setWord())
+								step = a1c1;
+							needInit = true;
 						}
 					}
 				} while (step == d1c1
@@ -305,6 +376,14 @@ void getQuotaData(quotaData* destination) {
 
 		// 1추가 1변경 - 테스트 완료
 		else if (step == a1c1) {
+			if (needInit) {
+				firstIdx = 0;
+				secondIdx = 1;
+				firstChar = START_CHAR;
+				secondChar = START_CHAR;
+				needInit = false;
+			}
+
 			for (int j = 0, oi = 0; ; oi++) {
 				if (oi == firstIdx)
 					j++;
@@ -329,7 +408,9 @@ void getQuotaData(quotaData* destination) {
 							firstIdx++;
 							secondIdx = 0;
 							if (firstIdx == originLen + 1) {
-								step = end;
+								if (-1 == setWord())
+									step = end;
+								needInit = true;
 							}
 						}
 					} while (step == a1c1
