@@ -24,7 +24,7 @@ void* checkPasswordByThread(void* threadIdx) {
 	return NULL;
 }
 
-PWCHAR getPassword(PWCHAR startStr) {
+PWCHAR getPassword() {
 	KeyData* kd = getKeyData();
 	if (kd == NULL)
 		return NULL;
@@ -32,7 +32,7 @@ PWCHAR getPassword(PWCHAR startStr) {
 		setKeyData(kd);
 
 	// setStrInit(startStr); // StrGetter.h
-	strInit(startStr); // StrGetter2.h
+	strInit(getDiction()); // StrGetter2.h
 	
 	pthread_t threads[THREAD_AMOUNT];
 	for (int i = 0; i < THREAD_AMOUNT; i++) {
