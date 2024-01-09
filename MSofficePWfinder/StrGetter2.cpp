@@ -7,6 +7,8 @@ int firstIdx;
 int secondIdx;
 char firstChar;
 char secondChar;
+const char START_CHAR = ' ';
+const char END_CHAR = '~';
 
 char* origin;
 char* origin_CR;
@@ -32,13 +34,13 @@ void strInit(const char* initStr) {
 	}
 }
 
-void test(quotaData* destination) {
+void getQuotaData(quotaData* destination) {
 
 	int cnt = 0;
 
 	while (true) {
 		if (cnt == QUOTA_AMOUN
-			|| step == a1) // step == end
+			|| step == end)
 			break;
 
 		// 기본값 - 테스트 완료
@@ -68,163 +70,283 @@ void test(quotaData* destination) {
 			if (firstIdx == originLen) {
 				step = a1;
 				firstIdx = 0;
-				firstChar = ' ';
+				firstChar = START_CHAR;
 			}
 		}
 
-		// QUOTA_AMOUN 가 작을 경우,
-		// 다시 함수를 호출했을 때 다음것이 잘 연결되어 출력되는지도
-		// 테스트 필요
-		// -> 모두 완료된 후 다시 호출하면 cnt가 정상적으로 0으로 나오는지도.
+		// 1개 추가 - 테스트 완료
+		else if (step == a1) {
+			for (int j = 0, oi = 0; ; oi++) {
+				if (oi == firstIdx) {
+					destination->quota[cnt][j] = firstChar;
+					destination->quota[cnt + 1][j] = firstChar;
+					j++;
+				}
+				destination->quota[cnt][j] = origin[oi];
+				destination->quota[cnt + 1][j++] = origin_CR[oi];
+				if (origin[oi] == '\0')
+					break;;
+			}
+
+			cnt += 2;
+			if (firstChar == END_CHAR) {
+				firstChar = START_CHAR;
+				if (firstIdx == originLen) {
+					step = c1;
+					firstIdx = 0;
+					firstChar = START_CHAR;
+				}
+				else
+					firstIdx++;
+			}
+			else
+				firstChar++;
+		}
+
+		// 1개 변경 - 테스트 완료
+		else if (step == c1) {
+			for (int i = 0; i < originLen + 1; i++) {
+				destination->quota[cnt][i] = origin[i];
+				destination->quota[cnt + 1][i] = origin_CR[i];
+			}
+			destination->quota[cnt][firstIdx] = firstChar;
+			destination->quota[cnt + 1][firstIdx] = firstChar;
+
+			cnt += 2;
+			if (firstChar == END_CHAR) {
+				firstChar = START_CHAR;
+				firstIdx++;
+				if (firstIdx == originLen) {
+					step = d2;
+					firstIdx = 0;
+					secondIdx = firstIdx + 1;
+				}
+			}
+			else
+				firstChar++;
+		}
+
+		// 2개 삭제 - 테스트 완료
+		else if (step == d2) {
+			for (int k = 0, oi = 0; ; oi++) {
+				if (origin[oi] == '\0'
+					|| (oi != firstIdx
+					&& oi != secondIdx)) {
+					destination->quota[cnt][k] = origin[oi];
+					destination->quota[cnt + 1][k++] = origin_CR[oi];
+				}
+				if (origin[oi] == '\0')
+					break;
+			}
+
+			cnt += 2;
+			secondIdx++;
+			if (secondIdx == originLen) {
+				firstIdx++;
+				secondIdx = firstIdx + 1;
+				if (firstIdx == originLen - 1) {
+					step = a2;
+					firstIdx = 0;
+					secondIdx = firstIdx;
+					firstChar = START_CHAR;
+					secondChar = START_CHAR;
+				}
+			}
+		}
+
+		// 2개 추가 - 테스트 완료
+		else if (step == a2) {
+			for (int k = 0, oi = 0; ; oi++) {
+				if (oi == firstIdx)
+					k++;
+				if (oi == secondIdx)
+					k++;
+				destination->quota[cnt][k] = origin[oi];
+				destination->quota[cnt + 1][k++] = origin_CR[oi];
+				if (origin[oi] == '\0')
+					break;;
+			}
+			destination->quota[cnt][firstIdx] = firstChar;
+			destination->quota[cnt][secondIdx + 1] = secondChar;
+			destination->quota[cnt + 1][firstIdx] = firstChar;
+			destination->quota[cnt + 1][secondIdx + 1] = secondChar;
+
+			cnt += 2;
+			if (secondChar == END_CHAR) {
+				if (firstChar == END_CHAR) {
+					firstChar = START_CHAR;
+					secondChar = START_CHAR;
+					secondIdx++;
+					if (secondIdx == originLen + 1) {
+						firstIdx++;
+						secondIdx = firstIdx;
+						if (firstIdx == originLen + 1) {
+							step = c2;
+							firstIdx = 0;
+							secondIdx = firstIdx + 1;
+							firstChar = START_CHAR;
+							secondChar = START_CHAR;
+						}
+					}
+				}
+				else {
+					firstChar++;
+					secondChar = START_CHAR;
+				}
+			}
+			else
+				secondChar++;
+		}
+
+		// 2개 변경 - 테스트 완료
+		else if (step == c2) {
+			for (int k = 0; k < originLen + 1; k++) {
+				destination->quota[cnt][k] = origin[k];
+				destination->quota[cnt + 1][k] = origin_CR[k];
+			}
+			destination->quota[cnt][firstIdx] = firstChar;
+			destination->quota[cnt][secondIdx] = secondChar;
+			destination->quota[cnt + 1][firstIdx] = firstChar;
+			destination->quota[cnt + 1][secondIdx] = secondChar;
+
+			cnt += 2;
+			if (secondChar == END_CHAR) {
+				if (firstChar == END_CHAR) {
+					firstChar = START_CHAR;
+					secondChar = START_CHAR;
+					secondIdx++;
+					if (secondIdx == originLen) {
+						firstIdx++;
+						secondIdx = firstIdx + 1;
+						if (firstIdx == originLen - 1) {
+							step = d1a1;
+							firstIdx = 0;
+							secondIdx = 0;
+							firstChar = START_CHAR;
+						}
+					}
+				}
+				else {
+					firstChar++;
+					secondChar = START_CHAR;
+				}
+			}
+			else
+				secondChar++;
+		}
+
+		// 1삭제 1추가 - 테스트 완료
+		else if (step == d1a1) {
+			for (int k = 0, oi = 0; ; oi++) {
+				if (k == secondIdx)
+					k++;
+				if (oi != firstIdx) {
+					destination->quota[cnt][k] = origin[oi];
+					destination->quota[cnt + 1][k++] = origin_CR[oi];
+				}
+				if (origin[oi] == '\0')
+					break;
+			}
+			destination->quota[cnt][secondIdx] = firstChar;
+			destination->quota[cnt + 1][secondIdx] = firstChar;
+
+			cnt += 2;
+			if (firstChar == END_CHAR) {
+				firstChar = START_CHAR;
+				secondIdx++;
+				if (secondIdx == originLen) {
+					firstIdx++;
+					secondIdx = 0;
+					if (firstIdx == originLen) {
+						step = d1c1;
+						firstIdx = 0;
+						secondIdx = 0;
+						firstChar = START_CHAR;
+					}
+				}
+			}
+			else
+				firstChar++;
+		}
+
+		// 1삭제 1변경 - 테스트 완료
+		else if (step == d1c1) {
+			for (int k = 0, oi = 0; ; oi++) {
+				if (oi != firstIdx) {
+					destination->quota[cnt][k] = origin[oi];
+					destination->quota[cnt + 1][k++] = origin_CR[oi];
+				}
+				if (origin[oi] == '\0')
+					break;
+			}
+			destination->quota[cnt][secondIdx] = firstChar;
+			destination->quota[cnt + 1][secondIdx] = firstChar;
+
+			cnt += 2;
+			if (firstChar == END_CHAR) {
+				firstChar = START_CHAR;
+				do {
+					secondIdx++;
+					if (secondIdx == originLen - 1) {
+						firstIdx++;
+						secondIdx = 0;
+						if (firstIdx == originLen) {
+							step = a1c1;
+							firstIdx = 0;
+							secondIdx = 1;
+							firstChar = START_CHAR;
+							secondChar = START_CHAR;
+						}
+					}
+				} while (step == d1c1
+					&& secondIdx == firstIdx - 1);
+			}
+			else
+				firstChar++;
+		}
+
+		// 1추가 1변경 - 테스트 완료
+		else if (step == a1c1) {
+			for (int j = 0, oi = 0; ; oi++) {
+				if (oi == firstIdx)
+					j++;
+				destination->quota[cnt][j] = origin[oi];
+				destination->quota[cnt + 1][j++] = origin_CR[oi];
+				if (origin[oi] == '\0')
+					break;;
+			}
+			destination->quota[cnt][firstIdx] = firstChar;
+			destination->quota[cnt][secondIdx] = secondChar;
+			destination->quota[cnt + 1][firstIdx] = firstChar;
+			destination->quota[cnt + 1][secondIdx] = secondChar;
+
+			cnt += 2;
+			if (secondChar == END_CHAR) {
+				if (firstChar == END_CHAR) {
+					firstChar = START_CHAR;
+					secondChar = START_CHAR;
+					do {
+						secondIdx++;
+						if (secondIdx == originLen + 1) {
+							firstIdx++;
+							secondIdx = 0;
+							if (firstIdx == originLen + 1) {
+								step = end;
+							}
+						}
+					} while (step == a1c1
+						&& !(firstIdx != secondIdx
+							&& (firstIdx - 1 != secondIdx)));
+				}
+				else {
+					firstChar++;
+					secondChar = START_CHAR;
+				}
+			}
+			else
+				secondChar++;
+		}
 	}
 
 	destination->amount = cnt;
-
-
-	// 스레드별 한번에 100개씩 주는 것도 좋을듯.
-	// 100개 이상씩. 병목현상 없도록.
-
-	// CAPS LOCK 동시처리 유의.
-
-
-	// 1추
-	//for (int i = 0; i <= strLen; i++) {
-	//	for (int j = 0, oi = 0; ; oi++) {
-	//		if (oi == i)
-	//			j++;
-	//		str[j++] = ori[oi];
-	//		if (ori[oi] == '\0')
-	//			break;;
-	//	}
-	//	// start-end 처리
-	//	for (char j = '0'; j < '5'; j++) {
-	//		str[i] = j;
-	//		// str 처리
-	//	}
-	//}
-
-	// 1변
-	//for (int i = 0; i < strLen; i++) {
-	//	for (int i = 0; i < strLen + 1; i++)
-	//		str[i] = ori[i];
-	//	// start-end 처리
-	//	for (char j = '0'; j < '5'; j++) {
-	//		str[i] = j;
-	//		// str 처리
-	//	}
-	//}
-
-	// 2삭
-	//for (int i = 0; i < strLen; i++)
-	//	for (int j = i + 1; j < strLen; j++) {
-	//		for (int k = 0, oi = 0; ; oi++) {
-	//			if (oi != i
-	//				&& oi != j) {
-	//				str[k++] = ori[oi];
-	//			}
-	//			if (ori[oi] == '\0')
-	//				break;
-	//		}
-	//		// str 처리
-	//	}
-
-	// 2추
-	//for (int i = 0; i <= strLen; i++)
-	//	for (int j = i; j <= strLen; j++) {
-	//		for (int k = 0, oi = 0; ; oi++) {
-	//			if (oi == i)
-	//				k++;
-	//			if (oi == j)
-	//				k++;
-	//			str[k++] = ori[oi];
-	//			if (ori[oi] == '\0')
-	//				break;;
-	//		}
-	//		// start-end 처리
-	//		for (char m = '0'; m < '5'; m++) {
-	//			str[i] = m;
-	//			// start-end 처리
-	//			for (char n = '0'; n < '5'; n++) {
-	//				str[j + 1] = n;
-	//				// str 처리
-	//			}
-	//		}
-	//	}
-
-	// 2변
-	//for (int i = 0; i < strLen; i++)
-	//	for (int j = i + 1; j < strLen; j++) {
-	//		for (int k = 0; k < strLen + 1; k++)
-	//			str[k] = ori[k];
-	//		// start-end 처리
-	//		for (char m = '0'; m < '5'; m++) {
-	//			str[i] = m;
-	//			// start-end 처리
-	//			for (char n = '0'; n < '5'; n++) {
-	//				str[j] = n;
-	//				// str 처리
-	//			}
-	//		}
-	//	}
-		
-	// 1삭 1변
-	//for (int i = 0; i < strLen; i++) {
-	//	for (int j = 0; j < strLen - 1; j++) {
-	//		for (int k = 0, oi = 0; ; oi++) {
-	//			if (oi != i)
-	//				str[k++] = ori[oi];
-	//			if (ori[oi] == '\0')
-	//				break;
-	//		}
-	//		// start-end 처리
-	//		for (char m = '0'; m < '5'; m++) {
-	//			str[j] = m;
-	//			// str처리
-	//		}
-	//	}
-	//} 
-
-	// 1삭 1추
-	//for (int i = 0; i < strLen; i++) {
-	//	for (int j = 0; j < strLen; j++) {
-	//		for (int k = 0, oi = 0; ; oi++) {
-	//			if (k == j)
-	//				k++;
-	//			if (oi != i)
-	//				str[k++] = ori[oi];
-	//			if (ori[oi] == '\0')
-	//				break;
-	//		}
-	//		// start-end 처리
-	//		for (char m = '0'; m < '5'; m++) {
-	//			str[j] = m;
-	//			// str처리
-	//		}
-	//	}
-	//}
-	
-	// 1변 1추
-	//for (int i = 0; i <= strLen; i++) {
-	//	for (int j = 0; j < strLen + 1; j++) {
-	//		if (i != j
-	//			&& (i - 1 != j)) {
-	//			for (int j = 0, oi = 0; ; oi++) {
-	//				if (oi == i)
-	//					j++;
-	//				str[j++] = ori[oi];
-	//				if (ori[oi] == '\0')
-	//					break;;
-	//			}
-	//			// start-end 처리
-	//			for (char m = '0'; m < '5'; m++) {
-	//				str[i] = m;
-	//				// start-end 처리
-	//				for (char n = '0'; n < '5'; n++) {
-	//					str[j] = n;
-	//					// str 처리
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 }

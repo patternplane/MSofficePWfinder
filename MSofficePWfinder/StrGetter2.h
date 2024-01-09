@@ -26,4 +26,4 @@ struct quotaData {
 
 void strInit(const char* initStr);
 
-void test(quotaData* destination);
+void getQuotaData(quotaData* destination);
