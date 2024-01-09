@@ -5,7 +5,7 @@ DictionData* getDiction() {
 	char filePath[500];
 	strcpy_s(filePath, USER_INPUT_DIR_SHORT);
 	strcat_s(filePath, USER_INPUT_FILE);
-	int errorCode = fopen_s(&fp, filePath,"r");
+	int errorCode = fopen_s(&fp, filePath, "r");
 
 	if (errorCode != 0) {
 		printf("\n\n");
@@ -14,7 +14,7 @@ DictionData* getDiction() {
 	}
 
 	char fileContent[2500];
-	int readLen = fread(fileContent,sizeof(char),5000,fp);
+	int readLen = fread(fileContent, sizeof(char), 5000, fp);
 	fileContent[readLen] = '\0';
 
 	char* passwords[100];
@@ -24,6 +24,11 @@ DictionData* getDiction() {
 	while (token != NULL) {
 		passwords[cnt++] = token;
 		token = strtok_s(NULL, "\n", &temp);
+	}
+	if (cnt == 0) {
+		printf("\n\n");
+		printf("  ▲ input.txt 파일에 예상 비밀번호 내용이 없습니다!\n  (위치 : 프로그램이 있는 폴더의 input 폴더 - input.txt 파일에 기입)\n");
+		return NULL;
 	}
 
 	DictionData* result = (DictionData*)malloc(sizeof(DictionData));
