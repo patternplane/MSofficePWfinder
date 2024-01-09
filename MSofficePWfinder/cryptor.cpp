@@ -205,7 +205,6 @@ PWCHAR checkCorrectPassword(int threadIdx) {
 	// 최종 발견값
 	PWCHAR result = NULL;
 
-	int cnt = 0;
 	while (true) {
 		if (nCmp == 0)
 			break;
@@ -217,9 +216,6 @@ PWCHAR checkCorrectPassword(int threadIdx) {
 			// StrGetter.h
 			/*getStr(password, threadIdx);
 			nextStr(threadIdx);*/
-			if (cnt % 500 == 0)
-				wprintf(L"loading : %s\n", qd.quota[i]);
-			cnt++;
 
 			// 패스워드 해시를 구함
 			GenPasswordHash(byPwHash, qd.quota[i], bySalt);

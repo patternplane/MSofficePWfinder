@@ -434,5 +434,11 @@ void getQuotaData(quotaData* destination) {
 
 	destination->amount = cnt;
 
+	if (destination->amount != 0) {
+		printf("ÁøÇàÁß : ");
+		wprintf(L"%s", destination->quota[0]);
+		printf("\n");
+	}
+
 	pthread_mutex_unlock(&lock2);
 }
