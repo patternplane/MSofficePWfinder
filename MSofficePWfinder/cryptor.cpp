@@ -3,7 +3,8 @@
 #include <openssl/aes.h>
 #include <stdio.h>
 #include "base64.h"
-#include "StrGetter.h"
+//#include "StrGetter.h"
+#include "StrGetter2.h"
 
 #include "KeyGetter.h"
 #include "KeyData.h"
@@ -196,46 +197,60 @@ PWCHAR checkCorrectPassword(int threadIdx) {
 	SHA512_CTX ctx;
 
 	// 비밀번호 테스트값
-	WCHAR password[50];
+	quotaData qd;
 
 	// 최종 해시 비교값 (0 = 옳은 비밀번호)
-	int nCmp;
+	int nCmp = -1;
 
-	for (int i = 0; ; i++) {
-		getStr(password, threadIdx);
-		nextStr(threadIdx);
-		if (i % 500 == 0)
-			wprintf(L"loading : %s\n", password);
+	// 최종 발견값
+	PWCHAR result = NULL;
 
-		// 패스워드 해시를 구함
-		// ((wchar_t*)(int*)Password)
-		GenPasswordHash(byPwHash, password, bySalt);
-
-		// 대칭키 생성 (with password hash)
-		GenAgileEncryptionKey(byPwHash, byHashInputBlockKey, byHashInputKey);
-		GenAgileEncryptionKey(byPwHash, byHashValueBlockKey, byHashValueKey);
-
-		// 복호화 
-		Decrypt(bySalt, byHashInputKey, byEncryptedVerifierHashInput, byDecryptedVerifierHashInput, 16);
-		Decrypt(bySalt, byHashValueKey, byEncryptedVerifierHashValue, byDecryptedVerifierHashValue, 64);
-
-		// 복호화 된 검증용 해시 입력을 해시한다.
-		SHA512_Init(&ctx);
-		SHA512_Update(&ctx, byDecryptedVerifierHashInput, 16);
-		SHA512_Final(byFinalHash, &ctx);
-
-		// 해시 비교한다.
-		nCmp = memcmp(byFinalHash, byDecryptedVerifierHashValue, SHA512_DIGEST_LENGTH);
-
-		if (0 == nCmp) {
-			wprintf(L"%s : FINDED!\n", password);
+	int cnt = 0;
+	while (true) {
+		if (nCmp == 0)
 			break;
+		getQuotaData(&qd);
+		if (qd.amount == 0)
+			break;
+
+		for (int i = 0; i < qd.amount; i++) {
+			// StrGetter.h
+			/*getStr(password, threadIdx);
+			nextStr(threadIdx);*/
+			if (cnt % 500 == 0)
+				wprintf(L"loading : %s\n", qd.quota[i]);
+			cnt++;
+
+			// 패스워드 해시를 구함
+			GenPasswordHash(byPwHash, qd.quota[i], bySalt);
+
+			// 대칭키 생성 (with password hash)
+			GenAgileEncryptionKey(byPwHash, byHashInputBlockKey, byHashInputKey);
+			GenAgileEncryptionKey(byPwHash, byHashValueBlockKey, byHashValueKey);
+
+			// 복호화 
+			Decrypt(bySalt, byHashInputKey, byEncryptedVerifierHashInput, byDecryptedVerifierHashInput, 16);
+			Decrypt(bySalt, byHashValueKey, byEncryptedVerifierHashValue, byDecryptedVerifierHashValue, 64);
+
+			// 복호화 된 검증용 해시 입력을 해시한다.
+			SHA512_Init(&ctx);
+			SHA512_Update(&ctx, byDecryptedVerifierHashInput, 16);
+			SHA512_Final(byFinalHash, &ctx);
+
+			// 해시 비교한다.
+			nCmp = memcmp(byFinalHash, byDecryptedVerifierHashValue, SHA512_DIGEST_LENGTH);
+
+			if (0 == nCmp) {
+				result = qd.quota[i];
+				wprintf(L"%s : FINDED!\n", result);
+				break;
+			}
 		}
 	}
 
 	if (nCmp == 0) {
 		isPasswordChecked = 1;
-		return password;
+		return result;
 	}
 	else
 		return NULL;

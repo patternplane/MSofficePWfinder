@@ -2,11 +2,12 @@
 #include <pthread.h>
 #include <Windows.h>
 #include "cryptor.h"
-#include "StrGetter.h"
 #include "threadAmount.h"
 #include "KeyGetter.h"
-
 #include <stdio.h>
+
+//#include "StrGetter.h"
+#include "StrGetter2.h"
 
 int isFinded = 0;
 PWCHAR findedPassword;
@@ -30,7 +31,8 @@ PWCHAR getPassword(PWCHAR startStr) {
 	else
 		setKeyData(kd);
 
-	setStrInit(startStr);
+	// setStrInit(startStr); // StrGetter.h
+	strInit(startStr); // StrGetter2.h
 	
 	pthread_t threads[THREAD_AMOUNT];
 	for (int i = 0; i < THREAD_AMOUNT; i++) {
