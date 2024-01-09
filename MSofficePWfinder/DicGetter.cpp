@@ -22,12 +22,13 @@ DictionData* getDiction() {
 	char* temp;
 	char* token = strtok_s(fileContent, "\n", &temp);
 	while (token != NULL) {
-		passwords[cnt++] = token;
+		if (strlen(token) >= 3)
+			passwords[cnt++] = token;
 		token = strtok_s(NULL, "\n", &temp);
 	}
 	if (cnt == 0) {
 		printf("\n\n");
-		printf("  ▲ input.txt 파일에 예상 비밀번호 내용이 없습니다!\n  (위치 : 프로그램이 있는 폴더의 input 폴더 - input.txt 파일에 기입)\n");
+		printf("  ▲ input.txt 파일에 올바른 비밀번호 내용이 없습니다!\n  예상 비밀번호는 최소 3자리 이상이어야 합니다.\n  (위치 : 프로그램이 있는 폴더의 input 폴더 - input.txt 파일에 기입)\n");
 		return NULL;
 	}
 
@@ -43,6 +44,13 @@ DictionData* getDiction() {
 			if (passwords[i][j] == '\0')
 				break;
 		}
+	}
+
+	printf("\n  ● 입력된 비밀번호 예상값 : \n");
+	for (int i = 0; i < result->amount; i++) {
+		printf("  ▷ ");
+		wprintf(L"%s",result->diction[i]);
+		printf("\n");
 	}
 
 	return result;
