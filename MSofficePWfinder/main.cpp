@@ -29,8 +29,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	ct = time(NULL);
 	sprintf_s(currentTime, "%d", ct);
 	strcpy_s(outFileName, OUTPUT_DIR);
-	strcat_s(outFileName, currentTime);
-	strcat_s(outFileName, "-");
 
 	// 패스워드 검색
 	PWCHAR password = getPassword();
@@ -40,6 +38,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("\n           성공!\n");
 
 		strcat_s(outFileName, OUTPUT_FILE_SUCCESS);
+		strcat_s(outFileName, currentTime);
+		strcat_s(outFileName, OUTPUT_FILE_END);
 		fopen_s(&fp, outFileName, "w");
 		fwprintf(fp,L"%s",password);
 		fclose(fp);
@@ -48,6 +48,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("실패.\n");
 
 		strcat_s(outFileName, OUTPUT_FILE_FAIL);
+		strcat_s(outFileName, currentTime);
+		strcat_s(outFileName, OUTPUT_FILE_END);
 		fopen_s(&fp, outFileName, "w");
 		printf("실패");
 		fclose(fp);
