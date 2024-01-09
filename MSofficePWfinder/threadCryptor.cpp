@@ -47,5 +47,13 @@ PWCHAR getPassword() {
 		if ((cnt++)%10000 == 0)
 			printf("");
 
-	return findedPassword;
+	int strLen = 0;
+	for (;; strLen++)
+		if (findedPassword[strLen] == '\0')
+			break;
+	PWCHAR result = (PWCHAR)malloc(strLen * sizeof(WCHAR));
+	for (int i = 0; i < strLen + 1; i++)
+		result[i] = findedPassword[i];
+
+	return result;
 }
