@@ -48,5 +48,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		fclose(fp);
 	}
 
+	getchar();
 	return 0;
 }
