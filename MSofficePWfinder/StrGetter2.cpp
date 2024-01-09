@@ -1,20 +1,18 @@
-#include <windows.h>
-#include <stdio.h>
 #include "StrGetter2.h"
 
 currentStep step;
 int firstIdx;
 int secondIdx;
-char firstChar;
-char secondChar;
-const char START_CHAR = ' ';
-const char END_CHAR = '~';
+WCHAR firstChar;
+WCHAR secondChar;
+const WCHAR START_CHAR = ' ';
+const WCHAR END_CHAR = '~';
 
-char* origin;
-char* origin_CR;
+PWCHAR origin;
+PWCHAR origin_CR;
 int originLen;
 
-void strInit(const char* initStr) {
+void strInit(const WCHAR* initStr) {
 	step = original;
 
 	for (int i = 0; ; i++)
@@ -22,8 +20,8 @@ void strInit(const char* initStr) {
 			originLen = i;
 			break;
 		}
-	origin = (char*)malloc((originLen + 1) * sizeof(char));
-	origin_CR = (char*)malloc((originLen + 1) * sizeof(char));
+	origin = (WCHAR*)malloc((originLen + 1) * sizeof(WCHAR));
+	origin_CR = (WCHAR*)malloc((originLen + 1) * sizeof(WCHAR));
 	for (int i = 0; i < originLen + 1; i++) {
 		origin[i] = initStr[i];
 		origin_CR[i] = ('a' <= initStr[i] && initStr[i] <= 'z'

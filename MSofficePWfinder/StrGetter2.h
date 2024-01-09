@@ -1,4 +1,5 @@
 #pragma once
+#include <windows.h>
 
 // delete, add, change
 // single or double
@@ -20,10 +21,10 @@ enum currentStep {
 #define CHAR_LEN 100
 
 struct quotaData {
-	char quota[QUOTA_AMOUN][CHAR_LEN];
+	WCHAR quota[QUOTA_AMOUN][CHAR_LEN];
 	int amount;
 };
 
-void strInit(const char* initStr);
+void strInit(const WCHAR* initStr);
 
 void getQuotaData(quotaData* destination);
