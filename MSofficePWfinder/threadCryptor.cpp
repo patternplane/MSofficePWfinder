@@ -10,13 +10,20 @@
 #include "StrGetter2.h"
 
 int isFinded = 0;
-PWCHAR findedPassword;
+WCHAR findedPassword[100];
 
 void* checkPasswordByThread(void* threadIdx) {
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
 	PWCHAR password = checkCorrectPassword((*((int*)threadIdx)));
 
 	if (password != NULL) {
-		findedPassword = password;
+		for (int i = 0;; i++) {
+			findedPassword[i] = password[i];
+			if (password[i] == '\0')
+				break;
+		}
 		isFinded = 1;
 	}
 	
@@ -51,13 +58,8 @@ PWCHAR getPassword() {
 		if ((cnt++)%10000 == 0)
 			printf("");
 
-	int strLen = 0;
-	for (;; strLen++)
-		if (findedPassword[strLen] == '\0')
-			break;
-	PWCHAR result = (PWCHAR)malloc(strLen * sizeof(WCHAR));
-	for (int i = 0; i < strLen + 1; i++)
-		result[i] = findedPassword[i];
+	for (int i = 0; i < THREAD_AMOUNT; i++)
+		pthread_cancel(threads[i]);
 
-	return result;
+	return findedPassword;
 }
