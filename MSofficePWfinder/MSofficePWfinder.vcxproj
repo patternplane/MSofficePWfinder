@@ -166,6 +166,7 @@
     <ClInclude Include="DicGetter.h" />
     <ClInclude Include="KeyData.h" />
     <ClInclude Include="KeyGetter.h" />
+    <ClInclude Include="paths.h" />
     <ClInclude Include="StrGetter.h" />
     <ClInclude Include="StrGetter2.h" />
     <ClInclude Include="threadAmount.h" />

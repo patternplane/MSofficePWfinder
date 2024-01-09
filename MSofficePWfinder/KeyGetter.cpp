@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <io.h>
 #include "KeyGetter.h"
+#include "paths.h"
 
 /*=======================
 파일 읽기 함수
