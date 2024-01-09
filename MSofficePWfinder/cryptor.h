@@ -1,7 +1,10 @@
 ﻿#pragma once
 #include <Windows.h>
+#include "KeyGetter.h"
 
 // 참고블로그 : https://codetronik.tistory.com/93
+
+void setKeyData(KeyData* kd);
 
 void Decrypt2(
 	IN PBYTE pbySalt, // salt

@@ -3,13 +3,27 @@
 #include <openssl/aes.h>
 #include <stdio.h>
 #include "base64.h"
-#include "StrGetter.h"
+//#include "StrGetter.h"
+#include "StrGetter2.h"
 
+#include "KeyGetter.h"
 #include "KeyData.h"
 
 // 코드 참고 출처 : https://codetronik.tistory.com/93
 
 #define MAX_FILE_SIZE 999999
+
+int hasKeyData = 0;
+KeyData* keydata;
+void setKeyData(KeyData* kd) {
+	if (kd != NULL) {
+		keydata = kd;
+		hasKeyData = 1;
+	}
+	else {
+		printf("Wrong KeyData!\n");
+	}
+}
 
 // 문서 복호화
 void Decrypt2(
@@ -110,7 +124,7 @@ void GenPasswordHash(
 	SHA512_Final((BYTE*)&uiBuffer[1], &ctx);
 
 	// spin_count = 100000
-	for (int i = 0; i < SPIN_COUNT; i++)
+	for (int i = 0; i < keydata->spinCount; i++)
 	{
 		*uiBuffer = i; // spin count
 		SHA512_Init(&ctx);
@@ -149,6 +163,11 @@ BYTE byPwHash[64] = { 0, };
 BYTE bySalt[16] = { 1, };
 
 PWCHAR checkCorrectPassword(int threadIdx) {
+	if (!hasKeyData) {
+		printf("KeyData has not been assigned!\n");
+		return NULL;
+	}
+
 	// 블록 키 (고정값)
 	BYTE byHashInputBlockKey[] = { 0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79 };
 	BYTE byHashValueBlockKey[] = { 0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 0x4e };
@@ -158,9 +177,9 @@ PWCHAR checkCorrectPassword(int threadIdx) {
 	BYTE byEncryptedVerifierHashInput[16] = { 0, };
 	BYTE byEncryptedVerifierHashValue[64] = { 0, };
 
-	base64_decode(Salt, bySalt, 16);
-	base64_decode(EncryptedVerifierHashInput, byEncryptedVerifierHashInput, 16);
-	base64_decode(EncryptedVerifierHashValue, byEncryptedVerifierHashValue, 64);
+	base64_decode(keydata->Salt, bySalt, 16);
+	base64_decode(keydata->EncryptedVerifierHashInput, byEncryptedVerifierHashInput, 16);
+	base64_decode(keydata->EncryptedVerifierHashValue, byEncryptedVerifierHashValue, 64);
 
 	// 암호화 데이터를 복호화하는 대칭키
 	BYTE byHashInputKey[SHA512_DIGEST_LENGTH] = { 0, };
@@ -178,46 +197,56 @@ PWCHAR checkCorrectPassword(int threadIdx) {
 	SHA512_CTX ctx;
 
 	// 비밀번호 테스트값
-	WCHAR password[50];
+	quotaData qd;
 
 	// 최종 해시 비교값 (0 = 옳은 비밀번호)
-	int nCmp;
+	int nCmp = -1;
 
-	for (int i = 0; ; i++) {
-		getStr(password, threadIdx);
-		nextStr(threadIdx);
-		if (i % 500 == 0)
-			wprintf(L"loading : %s\n", password);
+	// 최종 발견값
+	PWCHAR result = NULL;
 
-		// 패스워드 해시를 구함
-		// ((wchar_t*)(int*)Password)
-		GenPasswordHash(byPwHash, password, bySalt);
-
-		// 대칭키 생성 (with password hash)
-		GenAgileEncryptionKey(byPwHash, byHashInputBlockKey, byHashInputKey);
-		GenAgileEncryptionKey(byPwHash, byHashValueBlockKey, byHashValueKey);
-
-		// 복호화 
-		Decrypt(bySalt, byHashInputKey, byEncryptedVerifierHashInput, byDecryptedVerifierHashInput, 16);
-		Decrypt(bySalt, byHashValueKey, byEncryptedVerifierHashValue, byDecryptedVerifierHashValue, 64);
-
-		// 복호화 된 검증용 해시 입력을 해시한다.
-		SHA512_Init(&ctx);
-		SHA512_Update(&ctx, byDecryptedVerifierHashInput, 16);
-		SHA512_Final(byFinalHash, &ctx);
-
-		// 해시 비교한다.
-		nCmp = memcmp(byFinalHash, byDecryptedVerifierHashValue, SHA512_DIGEST_LENGTH);
-
-		if (0 == nCmp) {
-			wprintf(L"%s : FINDED!\n", password);
+	while (true) {
+		if (nCmp == 0)
 			break;
+		getQuotaData(&qd);
+		if (qd.amount == 0)
+			break;
+
+		for (int i = 0; i < qd.amount; i++) {
+			// StrGetter.h
+			/*getStr(password, threadIdx);
+			nextStr(threadIdx);*/
+
+			// 패스워드 해시를 구함
+			GenPasswordHash(byPwHash, qd.quota[i], bySalt);
+
+			// 대칭키 생성 (with password hash)
+			GenAgileEncryptionKey(byPwHash, byHashInputBlockKey, byHashInputKey);
+			GenAgileEncryptionKey(byPwHash, byHashValueBlockKey, byHashValueKey);
+
+			// 복호화 
+			Decrypt(bySalt, byHashInputKey, byEncryptedVerifierHashInput, byDecryptedVerifierHashInput, 16);
+			Decrypt(bySalt, byHashValueKey, byEncryptedVerifierHashValue, byDecryptedVerifierHashValue, 64);
+
+			// 복호화 된 검증용 해시 입력을 해시한다.
+			SHA512_Init(&ctx);
+			SHA512_Update(&ctx, byDecryptedVerifierHashInput, 16);
+			SHA512_Final(byFinalHash, &ctx);
+
+			// 해시 비교한다.
+			nCmp = memcmp(byFinalHash, byDecryptedVerifierHashValue, SHA512_DIGEST_LENGTH);
+
+			if (0 == nCmp) {
+				result = qd.quota[i];
+				wprintf(L"%s : FINDED!\n", result);
+				break;
+			}
 		}
 	}
 
 	if (nCmp == 0) {
 		isPasswordChecked = 1;
-		return password;
+		return result;
 	}
 	else
 		return NULL;

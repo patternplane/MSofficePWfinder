@@ -153,15 +153,22 @@
   <ItemGroup>
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="cryptor.cpp" />
+    <ClCompile Include="DicGetter.cpp" />
+    <ClCompile Include="KeyGetter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="StrGetter.cpp" />
+    <ClCompile Include="StrGetter2.cpp" />
     <ClCompile Include="threadCryptor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base64.h" />
     <ClInclude Include="cryptor.h" />
+    <ClInclude Include="DicGetter.h" />
     <ClInclude Include="KeyData.h" />
+    <ClInclude Include="KeyGetter.h" />
+    <ClInclude Include="paths.h" />
     <ClInclude Include="StrGetter.h" />
+    <ClInclude Include="StrGetter2.h" />
     <ClInclude Include="threadAmount.h" />
     <ClInclude Include="threadCryptor.h" />
   </ItemGroup>

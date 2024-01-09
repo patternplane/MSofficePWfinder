@@ -2,19 +2,28 @@
 #include <pthread.h>
 #include <Windows.h>
 #include "cryptor.h"
-#include "StrGetter.h"
 #include "threadAmount.h"
-
+#include "KeyGetter.h"
 #include <stdio.h>
 
+//#include "StrGetter.h"
+#include "StrGetter2.h"
+
 int isFinded = 0;
-PWCHAR findedPassword;
+WCHAR findedPassword[100];
 
 void* checkPasswordByThread(void* threadIdx) {
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
 	PWCHAR password = checkCorrectPassword((*((int*)threadIdx)));
 
 	if (password != NULL) {
-		findedPassword = password;
+		for (int i = 0;; i++) {
+			findedPassword[i] = password[i];
+			if (password[i] == '\0')
+				break;
+		}
 		isFinded = 1;
 	}
 	
@@ -22,8 +31,19 @@ void* checkPasswordByThread(void* threadIdx) {
 	return NULL;
 }
 
-PWCHAR getPassword(PWCHAR startStr) {
-	setStrInit(startStr);
+PWCHAR getPassword() {
+	KeyData* kd = getKeyData();
+	if (kd == NULL)
+		return NULL;
+	else
+		setKeyData(kd);
+
+	// setStrInit(startStr); // StrGetter.h
+	DictionData* dd = getDiction();
+	if (dd == NULL)
+		return NULL;
+	else
+		strInit(dd); // StrGetter2.h
 	
 	pthread_t threads[THREAD_AMOUNT];
 	for (int i = 0; i < THREAD_AMOUNT; i++) {
@@ -37,6 +57,9 @@ PWCHAR getPassword(PWCHAR startStr) {
 	while (isFinded == 0)
 		if ((cnt++)%10000 == 0)
 			printf("");
+
+	for (int i = 0; i < THREAD_AMOUNT; i++)
+		pthread_cancel(threads[i]);
 
 	return findedPassword;
 }
