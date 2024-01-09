@@ -53,6 +53,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		fclose(fp);
 	}
 
+	while (getchar() != '\n');
 	getchar();
 	return 0;
 }

@@ -32,7 +32,11 @@ PWCHAR getPassword() {
 		setKeyData(kd);
 
 	// setStrInit(startStr); // StrGetter.h
-	strInit(getDiction()); // StrGetter2.h
+	DictionData* dd = getDiction();
+	if (dd == NULL)
+		return NULL;
+	else
+		strInit(dd); // StrGetter2.h
 	
 	pthread_t threads[THREAD_AMOUNT];
 	for (int i = 0; i < THREAD_AMOUNT; i++) {
