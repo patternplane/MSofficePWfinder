@@ -1,6 +1,8 @@
 #pragma once
 #include <windows.h>
 #include "DicGetter.h"
+#define HAVE_STRUCT_TIMESPEC
+#include <pthread.h>
 
 // delete, add, change
 // single or double

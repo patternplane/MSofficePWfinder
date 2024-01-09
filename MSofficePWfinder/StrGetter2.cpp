@@ -52,7 +52,12 @@ void strInit(DictionData* initStrs) {
 	setWord();
 }
 
+pthread_mutex_t lock2 = PTHREAD_MUTEX_INITIALIZER;
+
 void getQuotaData(quotaData* destination) {
+
+	pthread_mutex_lock(&lock2);
+
 	if (passwords->amount == 0) {
 		destination->amount = 0;
 		return;
@@ -428,4 +433,6 @@ void getQuotaData(quotaData* destination) {
 	}
 
 	destination->amount = cnt;
+
+	pthread_mutex_unlock(&lock2);
 }
