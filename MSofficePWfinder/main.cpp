@@ -13,10 +13,15 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	// 출력 준비
+	// 입출력 디렉토리 검사
 	if (0 != _access(OUTPUT_DIR, 0)) {
 		_mkdir(OUTPUT_DIR);
 	}
+	if (0 != _access(USER_INPUT_DIR_SHORT, 0)) {
+		_mkdir(USER_INPUT_DIR_SHORT);
+	}
+
+	// 출력
 	FILE* fp;
 	char outFileName[100];
 	char currentTime[100];
